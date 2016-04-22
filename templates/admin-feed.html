@@ -1,0 +1,160 @@
+{% extends 'seller-layout.html' %}
+
+{% block body %}
+    <div class="ui padded stackable grid">
+      <div class="sixteen
+       wide column">
+        {% with messages = get_flashed_messages(True) %}
+            {% for category, message in messages %}              
+              <div class="ui {{ category }} inverted attached centered segment" style="border: none;">
+                <div class="ui small centered header">{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endwith %}
+
+        <div class="ui segment">
+          <div class="ui ">
+            <div class="ui padded stackable grid">          
+              <div class="ui red attached message row">
+                <div class="three wide column">               
+                    <div class="ui ">Product</div>
+                  </div>
+
+                  <div class="two wide column">               
+                    <div class="ui ">Brand</div>
+                  </div>
+
+                  <div class="three wide column">
+                    <div class="ui ">Description</div>
+                  </div>
+
+                  <div class="two wide column">
+                    <div class="ui ">Quantity</div>
+                  </div>
+
+                  <div class="two wide column">
+                    <div class="ui ">Price</div>
+                  </div>
+
+                  <div class="one wide column">
+                    <div class="ui ">MOQ</div>
+                  </div>
+
+                  <div class="one wide column">
+                    <div class="ui ">Target</div>
+                  </div>
+
+                  <div class="one wide column">
+                    <div class="ui ">Current</div>
+                  </div>
+
+                  <div class="one wide column">
+                    <div class="ui ">Needed</div>
+                  </div>
+                </div>
+            </div>
+          </div>
+
+          <div class="ui " >
+              <div class="ui padded stackable grid">
+                {% for stock in stocks %}
+                  {% if list(stocks).index(stock) % 2 == 0 %}
+                    <div class="ui row">
+                  {% else %}
+                    <div class="ui row" style="background: #CED1D4;">
+                  {% endif %}
+                
+                      <div class="three wide column">               
+                        <div class="ui ">{{ stock.stock.product.name }}</div>
+                      </div>
+
+                      <div class="two wide column">               
+                        <div class="ui ">{{ stock.stock.brand.name }}</div>
+                      </div>
+
+                      <div class="three wide column">
+                        <div class="ui ">{{ stock.stock.first_description.description }}</div>
+                      </div>
+
+                      <div class="two wide column">
+                        <div class="ui ">{{ stock.stock.quantity }} {{ stock.stock.unit.short_name }}</div>
+                      </div>
+
+                      <div class="two wide column">
+                        <div class="ui ">${{ stock.stock.price }}</div>
+                      </div>
+
+                      <div class="one wide column">
+                        <div id="moq-{{ stock.stock.id }}" class="ui ">{{ stock.stock.moq }}</div>
+                      </div>
+
+                      <div class="one wide column">
+                        <div id="target-{{ stock.stock.id }}" class="ui ">{{ stock.stock.minimum_quantity }}</div>
+                      </div>
+
+                      {% if (Order.select(fn.sum(Order.quantity)).where(Order.stock==stock.stock.id).scalar()) == None %}
+
+                        <div class="one wide column">
+                          <div id="current-{{ stock.stock.id }}" class="ui ">{{ 0 }}</div>
+                        </div>
+
+                        <div class="one wide column">
+                          <div id="needed-{{ stock.stock.id }}" class="ui ">{{ stock.stock.minimum_quantity }}</div>
+                        </div>
+
+                      {% else %}
+
+                        <div class="one wide column">
+                          <div id="current-{{ stock.stock.id }}" class="ui ">{{ Order.select(fn.sum(Order.quantity)).where(Order.stock==stock.stock.id).scalar() }}</div>
+                        </div>
+
+                        <div class="one wide column">
+                          <div id="needed-{{ stock.stock.id }}" class="ui ">{{ stock.stock.minimum_quantity - Order.select(fn.sum(Order.quantity)).where(Order.stock==stock.stock.id).scalar() }}</div>
+                        </div>
+
+                      {% endif %}
+                    </div>
+                {% endfor %}
+              </div>
+          </div>
+        </div>      
+
+        <div class="ui pagination menu">
+          {% for page in pagination.iter_pages() %}
+            {% if page %}
+              {% if page != pagination.page %}
+                <a class="item" href="{{ url_for_other_page(page) }}">{{ page }}</a>
+              {% else %}
+                <div class="item">{{ page }}</div>
+              {% endif %}
+            {% else %}
+              <span class=ellipsis>…</span>
+            {% endif %}
+          {%- endfor %}
+          {% if pagination.has_next %}
+            <a class="item" href="{{ url_for_other_page(pagination.page + 1)
+              }}">Next &raquo;</a>
+          {% endif %}
+        </div>
+      </div>
+
+{% endblock %}
+
+{% block ajax1 %}
+  <script type="text/javascript">
+   var interval_id = window.setInterval(update, 3000);
+
+   function update() {
+    {% for stock in stocks %}
+      $.get('http://{{ HOST }}:3000/enquiry?stock_id={{ stock.stock.id }}', function(data) {
+        response = data.split('R');
+        $('#target-{{ stock.stock.id }}').html(response[0]);
+        $('#current-{{ stock.stock.id }}').html(response[1]);
+        $('#needed-{{ stock.stock.id }}').html(response[2]);
+        $('#moq-{{ stock.stock.id }}').html(response[3]);
+        console.log('Updated');
+      });
+    {% endfor %}
+  }
+  </script>  
+{% endblock %}

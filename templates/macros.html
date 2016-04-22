@@ -1,0 +1,17 @@
+{% macro render_field(field, label_visible=true) %}
+	<div class="field">
+		{% if field.errors %}
+			{% for error in field.errors %}
+				<div class="ui pointing below red label">{{ error }}</div>
+			{% endfor %}
+		{% endif %}
+
+		{% if field.type != 'HiddenField' and field.id != 'csrf_token' and label_visible %}
+            <label for="{{ field.id }}">{{ field.label }}</label>
+        {% endif %}
+		
+		{{ field(placeholder=field.label.text, style="background: #f3f4f5; border: none;", list=field.label.text) }}
+
+		<p>&nbsp</p>
+	</div>
+{% endmacro %}

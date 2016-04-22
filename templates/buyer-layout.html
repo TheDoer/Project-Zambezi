@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+
+{% block menu %}
+    <a class="item" href="{{ url_for('buyer_notifications') }}">
+    	<i class="bell icon"></i>
+        Notifications [
+          {% if current_user.is_authenticated %}
+            {{ current_user.orders.where(Order.ready==True).count() }}
+          {% else %}
+            {{ 0 }}
+          {% endif %}
+          ]
+    </a>
+
+    <a class="item" href="{{ url_for('buyer_orders') }}">
+    	<i class="in cart icon"></i>
+        Cart [
+          {% if current_user.is_authenticated %}
+            {{ current_user.orders.where(Order.ready==False).count() }}
+          {% else %}
+            {{ 0 }}
+          {% endif %}
+        ]
+    </a>
+
+ <!--   <a class="item">-->
+ <!--   	<i class="heart icon"></i>-->
+ <!--       Favorites-->
+	<!--</a>-->
+
+    <a class="item" href="{{url_for('logout') }}">
+    	Logout &nbsp <div class="ui tiny red header"> {{ current_user.email }}</div>
+	</a>
+{% endblock %}
+
+{% block ajax %}
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'seller-layout.html' %}
+
+{% block body %}
+    <div class="ui padded stackable grid">
+      <div class="four wide column"></div>
+
+      <div class="eight wide column">
+        <p>&nbsp</p>
+        <a href="{{ url_for('index') }}">
+          <img src="/static/img/logo.png" class="ui centered mini circular image">
+          
+        </a>
+
+        <div class="ui large centered header">
+          Add new stock item
+        </div>
+        
+        <form class="ui form segment" action="{{ url_for('seller_add_product') }}" method="POST" enctype="multipart/form-data">
+          {% with messages = get_flashed_messages(True) %}
+            {% for category, message in messages %}              
+              <div class="ui {{ category }} inverted attached centered segment" style="border: none;">
+                <div class="ui small centered header">{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endwith %}
+          
+          {% from 'macros.html' import render_field %}          
+          
+          {{ form.hidden_tag() }}
+          {% for field in form %}
+            {% if field.label.text == 'Brand' %}
+              <div class="ui dividing header">Product Description</div>
+              <p><label class="ui tiny red header">Product description <i>e.g Probrands White Rice</i></label></p>
+            {% endif %}
+
+            {% if field.label.text == 'Number' %}
+              <div class="ui dividing header">Units</div>
+              <p><label class="ui tiny red header">Product Units <i>e.g 2 Kg</i></label></p>
+              <div class="two fields">
+            {% endif %}
+
+            {% if field.label.text == 'Price' %}
+              <div class="ui dividing header">Pricing & Target</div>
+              <div class="two fields">
+            {% endif %}
+
+            {% if field.label.text == 'Image' %}
+              <div class="ui dividing header">Product Image</div>              
+            {% endif %}
+
+            {{ render_field(field) }}
+
+            {% if field.label.text == 'Units'%}
+              </div >
+            {% endif %}
+
+            {% if field.label.text == 'Target' %}
+              </div>
+            {% endif %}            
+            
+          {% endfor %}          
+          
+          <div class="field"  >
+            <button class="ui fluid large green submit button" type="submit" id="submit">Add Stock Item</button>
+          </div>
+
+          <datalist id="Brand">
+            {% for brand in brands %}
+              <option value="{{ brand.name }}">
+            {% endfor %}
+          </datalist>
+
+          <datalist id="Description">
+            {% for description in descriptions %}
+              <option value="{{ description.description }}">
+            {% endfor %}
+          </datalist>
+
+          <datalist id="Product">
+              {% for product in products %}
+              <option value="{{ product.name }}">
+            {% endfor %}
+          </datalist>
+
+          <datalist id="Price">
+            {% for price in prices %}
+              <option value="{{ price.price }}">
+            {% endfor %}
+          </datalist>
+        </form>        
+      </div>
+    </div>
+{% endblock %}

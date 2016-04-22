@@ -1,0 +1,99 @@
+{% if current_user.is_authenticated %}
+    {% if current_user.account_type == 'supplier' %}
+        {% extends 'seller-layout.html' %}
+    {% elif current_user.account_type == 'buyer' %}
+        {% extends 'buyer-layout.html' %}
+    {% else %}
+        {% extends 'layout.html' %}
+    {% endif %}
+{% else %}
+    {% extends 'layout.html' %}
+{% endif %}
+
+
+{% block body %}
+    <div class="ui padded stackable grid">
+      <div class="sixteen wide column">
+        {% with messages = get_flashed_messages(True) %}
+            {% for category, message in messages %}
+              <div class="ui {{ category }} inverted attached centered segment" style="border: none;">
+                <div class="ui small centered header">{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endwith %}
+
+        <div class="ui segment">
+          <div class="ui ">
+            <div class="ui padded stackable grid">
+              <div class="ui red attached message row">
+                <div class="three wide column">
+                  <div class="ui ">OrderID</div>
+                </div>
+
+                <div class="three wide column">
+                  <div class="ui ">Product</div>
+                </div>
+
+                <div class="three wide column">
+                  <div class="ui ">Brand</div>
+                </div>
+
+                <div class="two wide column">
+                  <div class="ui ">Quantity</div>
+                </div>
+
+                <div class="three wide column">
+                  <div class="ui ">Description</div>
+                </div>
+
+                <div class="two wide column">
+                  <div class="ui ">Price</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ui " >
+              <div class="ui padded stackable grid">
+                {% for stock in stocks %}
+                  {% if list(stocks).index(stock) % 2 == 0 %}
+                    <div class="ui row">
+                  {% else %}
+                    <div class="ui row" style="background: #CED1D4;">
+                  {% endif %}
+                      <div class="three wide column">
+                        <div class="ui ">{{ Catalogue.get(Catalogue.long_code=='{}R{}R{}R{}R{}R{}'.format(stock.product.id, stock.first_description.id, stock.unit.id, stock.brand.id, stock.quantity, stock.supplier.id)).short_code }}</div>
+                      </div>
+
+                      <div class="three wide column">
+                        <div class="ui ">{{ stock.product.name }}</div>
+                      </div>
+
+                      <div class="three wide column">
+                        <div class="ui ">{{ stock.brand.name }}</div>
+                      </div>
+
+                      <div class="two wide column">
+                        <div class="ui ">{{ stock.quantity }} {{ stock.unit.short_name }}</div>
+                      </div>
+
+                      <div class="three wide column">
+                        <div class="ui ">{{ stock.first_description.description }}</div>
+                      </div>
+
+                      <div class="two wide column">
+                        <div class="ui ">${{ stock.price }}</div>
+                      </div>
+                    </div>
+                {% endfor %}
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endblock %}
+
+{% block ajax %}
+
+{% endblock %}

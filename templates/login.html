@@ -1,0 +1,44 @@
+
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="ui padded stackable grid">
+  <div class="four wide column"></div>
+  <div class="eight wide column">
+    <p>&nbsp</p>
+    <a href="{{ url_for('index') }}">
+      <img src="/static/img/logo.png" class="ui centered mini circular image">
+      
+    </a>
+
+    <div class="ui large centered header">
+      Login to start group buying
+    </div>
+    
+    <form method="POST" action="" class="ui large form segment">
+      {% with messages = get_flashed_messages(True) %}
+        {% for category, message in messages %}              
+          <div class="ui {{ category }} inverted attached centered segment" style="border: none;">
+            <div class="ui small centered header">{{ message }}</div>
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      {% from 'macros.html' import render_field %}
+
+      {{ form.hidden_tag() }}
+      {% for field in form %}
+        {{ render_field(field) }}
+      {% endfor %}
+      
+      <button class="ui fluid large green submit button" type="submit" id="submit">Login</button>
+    </form>
+
+    <div class="ui message">
+      New to us? <a href="{{ url_for('register')}}">Sign Up here  </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+

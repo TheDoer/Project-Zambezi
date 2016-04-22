@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <div class="ui padded stackable grid">
+  <div class="four wide column"></div>
+  <div class="eight wide column">    
+    <a href="{{ url_for('index') }}">
+      <img src="/static/img/logo.png"     class="ui centered mini circular image">      
+    </a>
+    <div class="ui large centered header">
+      Create account
+    </div>
+
+        <form method="POST" action="" class="ui large form segment">
+          {% from 'macros.html' import render_field %}
+
+          {{ form.hidden_tag() }}
+          {% for field in form %}
+            {{ render_field(field) }}
+          {% endfor %}
+          
+          <button class="ui fluid large green submit button" type="submit" id="submit">Create your account</button>
+        </form>
+
+        <div class="ui message">
+          Already have an Account? <a href="{{ url_for('login') }}">Login here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+

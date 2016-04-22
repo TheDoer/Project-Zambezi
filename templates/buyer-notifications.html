@@ -1,0 +1,98 @@
+{% extends 'buyer-layout.html' %}
+
+{% block body %}
+  <div class="ui padded stackable grid"> 
+    <div class="four wide column">
+      <div class="ui raised segment">
+        <h1 class="ui dividing header"><i class="ui red pie chart icon"></i>Statistics </h1>
+        <div class="ui list">   
+          <div class="item">                          
+            <div class="ui large message">                
+              Notifications 
+              <div class="right floated content">                                  
+                <div class="ui red label">
+                  {{ my_orders.count() }}
+                </div>                             
+              </div>
+            </div>
+          </div>
+
+          <p>&nbsp</p>
+        </div>
+      </div>
+    </div>
+
+      <div class="twelve wide column" >
+        <div class="ui segment">
+          <div class="ui ">
+            <div class="ui padded stackable grid">          
+              <div class="ui red attached message row">
+                <div class="three wide column">               
+                    <div class="ui ">Product</div>
+                  </div>
+
+                  <div class="three wide column">               
+                    <div class="ui ">Brand</div>
+                  </div>
+
+                  <div class="three wide column">
+                    <div class="ui ">Description</div>
+                  </div>
+
+                  <div class="three wide column">
+                    <div class="ui ">Quantity</div>
+                  </div>
+
+                  <div class="two wide column">
+                    <div class="ui ">Total price</div>
+                  </div>
+
+                  <div class="two wide column">
+                    <div class="ui ">Target</div>
+                  </div>
+                </div>
+            </div>
+          </div>
+
+          <div class="ui " >
+              <div class="ui padded stackable grid">
+                {% for order in my_orders %}
+                  {% if list(my_orders).index(order) % 2 == 0 %}
+                    <div class="ui row">
+                  {% else %}
+                    <div class="ui row" style="background: #CED1D4;">
+                  {% endif %}
+                
+                      <div class="three wide column">               
+                        <div class="ui ">{{ order.stock.product.name }}</div>
+                      </div>
+
+                      <div class="three wide column">               
+                        <div class="ui ">{{ order.stock.brand.name }}</div>
+                      </div>
+
+                      <div class="three wide column">
+                        <div class="ui ">{{ order.stock.first_description.description }}</div>
+                      </div>
+
+                      <div class="three wide column">
+                        <div class="ui ">{{ order.quantity }} x {{ order.stock.quantity }} {{ order.stock.unit.short_name }}</div>
+                      </div>
+
+                      <div class="two wide column">
+                        <div class="ui ">${{ order.price }}</div>
+                      </div>
+
+                      <div class="two wide column">
+                        <div class="ui ">{{ order.stock.minimum_quantity }}</div>
+                      </div>                 
+                    </div>
+                {% endfor %}
+              </div>
+          </div>
+        </div>
+      </div>
+
+
+
+{% endblock %}

@@ -1,0 +1,156 @@
+{% if current_user.account_type == 'supplier' %}
+  {% extends 'seller-layout.html' %}
+{% else %}
+  {% extends 'buyer-layout.html' %}
+{% endif %}
+
+
+{% block body %}
+    <div class="ui padded stackable grid">
+      <div class="ten wide column">
+        {% with messages = get_flashed_messages(True) %}
+            {% for category, message in messages %}
+              <div class="ui {{ category }} inverted attached centered segment" style="border: none;">
+                <div class="ui small centered header">{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endwith %}
+
+          {% for stock in stocks %}
+        <div class="ui segment">
+           <div class="ui divided items">
+              <div class="ui item">
+                <div class="fluid image">
+                  {% if os.path.isfile("{{ UPLOAD_FOLDER }}" + stock.stock.image) %}
+                    <img src="{{ UPLOAD_FOLDER }}{{ stock.stock.image }}" alt="{{ stock.stock.image }}">
+                  {% else %}
+                    <img src="{{ UPLOAD_FOLDER }}logo.png">
+                  {% endif %}
+                  <div class="ui red top left attached label"><strong>
+                  <i class="dollar icon"></i>
+                  {{ stock.stock.price }}</strong></div>
+                </div>
+
+                <div class="content">
+                  <div class="ui stackable double grid">
+                    <div class="four wide column">
+                      <div class="ui header">{{ stock.stock.product.name }}</div>
+                    </div>
+
+                    <div class="twelve wide column">
+                      <a class="ui label">{{ stock.stock.quantity }} {{ stock.stock.unit.short_name }} </a>
+                      <a class="ui label">{{ stock.stock.brand.name }}</a>
+                      <a class="ui label">{{ stock.stock.first_description.description }}</a>
+                    </div>
+                  </div>
+
+                  <hr>
+                  <div class="description">
+                    <p>
+                      <span class="ui tiny header">Target: </span>
+                      <span id="{{ stock.stock.id }}-target" class="ui red label">{{ stock.stock.minimum_quantity }}</span>
+                      units
+                    </p>
+
+                    {% if (Order.select(fn.sum(Order.quantity)).where(Order.stock==stock.stock.id).scalar()) == None %}
+                      <p>
+                        <span class="ui tiny header">Current: </span>
+                        <span id="{{ stock.stock.id }}-current" class="ui yellow label">{{ 0 }}</span>
+                        units
+                      </p>
+
+                      <p>
+                        <span class="ui tiny header">Needed: </span>
+                        <span id="{{ stock.stock.id }}-needed" class="ui green horizontal label">{{ stock.stock.minimum_quantity }}</span>
+                        units
+                      </p>
+
+                      <p>
+                        <span class="ui tiny header">MOQ: </span>
+                        <span id="{{ stock.stock.id }}-moq" class="ui orange horizontal label">{{ stock.stock.moq }}</span>
+                        units
+                      </p>
+                    {% else %}
+                      <p>
+                        <span>Current: </span>
+                        <span id="{{ stock.stock.id }}-current" class="ui green label">{{ (Order.select(fn.sum(Order.quantity)).where(Order.stock==stock.stock.id).scalar()) }}</span>
+                        units
+                      </p>
+
+                      <p>
+                        <span>Needed: </span>
+                        <span id="{{ stock.stock.id }}-needed" class="ui blue horizontal label">{{ stock.stock.minimum_quantity -  (Order.select(fn.sum(Order.quantity)).where(Order.stock==stock.stock.id).scalar()) }}</span>
+                        units
+                      </p>
+
+                      <p>
+                        <span>MOQ: </span>
+                        <span id="{{ stock.stock.id }}-moq" class="ui orange horizontal label">{{ int(stock.stock.moq ) }}</span>
+                        units
+                      </p>
+                    {% endif %}
+                  </div>
+
+                  <div class="extra">
+                    <form class="ui form" action="{{ url_for('order') }}" method="POST">
+                      <div class="two fields" >
+                        <div class="field"></div>
+                        <div class="ui small fluid action input  field">
+                          <input type="hidden" name="stock_id" value="{{ stock.stock.id }}">
+                          <input id="order-{{ stock.stock.id }}" type="number" name="quantity" >
+                          <input type="hidden" name="page" value="{{ page }}">
+                            <button class="ui small blue right labeled icon button" >
+                              <i class="add to cart icon"></i>
+                              Add to Cart
+                            </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="ui pagination menu">
+          {% for page in pagination.iter_pages() %}
+            {% if page %}
+              {% if page != pagination.page %}
+                <a class="item" href="{{ url_for_other_page(page) }}">{{ page }}</a>
+              {% else %}
+                <div class="item">{{ page }}</div>
+              {% endif %}
+            {% else %}
+              <span class=ellipsis>…</span>
+            {% endif %}
+          {%- endfor %}
+          {% if pagination.has_next %}
+            <a class="item" href="{{ url_for_other_page(pagination.page + 1)
+              }}">Next &raquo;</a>
+          {% endif %}
+        </div>
+      </div>
+
+{% endblock %}
+
+{% block ajax %}
+
+<script type="text/javascript">
+ var interval_id = window.setInterval(update, 3000);
+
+ function update() {
+  {% for stock in stocks %}
+    $.get('http://{{ HOST }}:{{ PORT }}/enquiry?stock_id={{ stock.stock.id }}', function(data) {
+      response = data.split('R');
+      $('#{{ stock.stock.id }}-target').html(response[0]);
+      $('#{{ stock.stock.id }}-current').html(response[1]);
+      $('#{{ stock.stock.id }}-needed').html(response[2]);
+      $('#{{ stock.stock.id }}-moq').html(response[3]);
+    //   console.log('Updated');
+    });
+  {% endfor %}
+}
+</script>
+
+{% endblock %}
