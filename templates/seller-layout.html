@@ -91,6 +91,11 @@
 {% endblock %}
 
 {% block menu %}
+	<a class="item" href="{{url_for('monitoring') }}">
+		<i class="dashboard icon"></i>
+        Monitoring <sup style="color: red;">beta</sup>
+	</a>
+
 	<a class="item" href="{{url_for('seller_feed') }}">
 		<i class="cart icon"></i>
         Stocks

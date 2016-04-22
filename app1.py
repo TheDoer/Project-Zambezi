@@ -1,25 +1,18 @@
-import json, os, datetime, io
+import json, os, datetime
 from random import randint
-from urllib.parse import urlparse
 
-import requests, http, pycurl
+import requests
 
 from werkzeug import secure_filename
+
 from flask import Flask, render_template, session, redirect, url_for, request, flash
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from flask.ext.bcrypt import generate_password_hash
-from flask.ext.socketio import SocketIO, emit
-from urllib.parse import urlencode
 
 from models import *
 from pagination import Pagination
 
 import forms
-
-# import libraries for socketing
-import socket
-import sys
-from threading import *
 
 
 DEBUG = True
@@ -39,8 +32,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-host, port = urlparse(os.environ["http_proxy"]).netloc.split(":")
-
 def allowed_file(filename):
         return '.' in filename and \
                filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -54,36 +45,10 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 def send_sms(phone_number, message):
-	# message may be string or dict
 	if type(message) == dict:
 		message = message['response']
-	url = 'http://api.infobip.com'
-	payload = {"to":"' + phone_number + '","text":"' + message + '"}
-	headers = [
-	    'authorization: Basic Um91bmRTaG9wcGVyOlJTaG9wcGVyMDQxNA==',
-	    'content-type: application/json',
-	    'accept: application/json'
-	    ]
 
-	storage = io.StringIO()
-	c = pycurl.Curl()
-	c.setopt(c.URL, url)
-
-	postfields = urlencode(payload)
-
-	c.setopt(c.POSTFIELDS, postfields)
-	c.setopt(pycurl.HTTPHEADER, headers)
-
-	c.perform()
-	c.close()
-
-	return storage.getvalue()
-
-# def send_sms(phone_number, message):
-	# if type(message) == dict:
-	# 	message = message['response']
-
-# 	return '{}: {}'.format(phone_number, message)
+	return '{}: {}'.format(phone_number, message)
 
 def stock_item_exists(order_no):
 	'''This function checks if the stock item translated to by the order number exists.
@@ -134,7 +99,7 @@ def process_order(quantity, stock):
 
 				order = Order.make_order(buyer=current_user.id, stock=stock, quantity=quantity, price=price)
 				response = {
-					'response': 'Order successfully placed. Order No: RS{}'.format(order.id),
+					'response': 'Order successfully placed. Order No: {}'.format(order.id),
 					'category': 'green'
 				}
 
@@ -149,7 +114,6 @@ def process_order(quantity, stock):
 					for order in orders:
 						order.ready = True
 						order.save()
-						send_sms(str(order.buyer.phone), 'Target met! Your order: RS{} is ready for delivery'.format(order.id))
 
 			else:
 				response = {
@@ -184,18 +148,23 @@ def monitoring():
 
 @app.route('/monitoring/stocks', methods=['POST', 'GET'])
 def monitoring_stocks():
-	json_response = [
+    json_response = [
 		['Status', 'Current', 'Needed', 'Canceled', {'role': 'annotation'}]
-	]
+    ]
 
-	stocks = Stock.select()
+    stocks = Stock.select().where(Stock.bought==False)
 
-	for stock in stocks:
-		response = enquire(stock.id)
-		response = response.split('R')
-		json_response.append(['{}{} {} {}'.format(stock.quantity, stock.unit.short_name, stock.brand.name, stock.product.name), int(response[1]), int(response[2]), stock.deleted_orders.count(), ''])
+    for stock in stocks:
+        canceled = DeletedOrder.select(fn.sum(DeletedOrder.quantity)).where(DeletedOrder.stock==stock.id).scalar()
 
-	return json.JSONEncoder().encode(json_response)
+        if canceled == None:
+            canceled = 0
+
+        response = enquire(stock.id)
+        response = response.split('R')
+        json_response.append(['{}{} {} {}'.format(stock.quantity, stock.unit.short_name, stock.brand.name, stock.product.name), int(response[1]), int(response[2]), -1 * canceled, ''])
+
+    return json.JSONEncoder().encode(json_response)
 
 @app.route('/enquiry', methods=['POST', 'GET'])
 def enquire(id=None):
@@ -688,41 +657,6 @@ def about():
 	return render_template('about-roundshopper.html')
 
 
-socketio = SocketIO(app)
-
-@app.route('/socket')
-def the_start():
-    return render_template('socket.html')
-
-@socketio.on('my event', namespace='/test')
-def test_message(message):
-    emit('my response', {'data': message['data']})
-
-@socketio.on('my broadcast event', namespace='/test')
-def test_message(message):
-    emit('my response', {'data': message['data']}, broadcast=True)
-
-@socketio.on('connect', namespace='/test')
-def test_connect():
-    emit('my response', {'data': 'Connected'})
-
-@socketio.on('disconnect', namespace='/test')
-def test_disconnect():
-    print('Client disconnected')
-
 if __name__ == '__main__':
-	socketio.run(app, debug=True, host=HOST, port=PORT)
-	# main_thread = Thread(target=app.run)
-	# main_thread.daemon = True
-	# main_thread.start()
-
-	# socket_thread = Thread(target=manage_socket_service)
-	# socket_thread.daemon = True
-	# socket_thread.start()
-
-	# t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
-	# t.start()
-	# app.run(debug=DEBUG, port=PORT, host=HOST)
-	# #app.run(debug=DEBUG, host=HOST, port=PORT)
-	# # start and manage socket services
-	# manage_socket_service()
+	app.run(debug=DEBUG, port=PORT, host=HOST)
+	#app.run(debug=DEBUG, host=HOST, port=PORT)

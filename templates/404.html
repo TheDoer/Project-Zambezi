@@ -1,5 +1,15 @@
-{% extends 'layout.html' %}
+{% if current_user.is_authenticated %}
+    {% if current_user.account_type == 'supplier' %}
+        {% extends 'seller-layout.html' %}
+    {% elif current_user.account_type == 'buyer' %}
+        {% extends 'buyer-layout.html' %}
+    {% else %}
+        {% extends 'layout.html' %}
+    {% endif %}
+{% else %}
+    {% extends 'layout.html' %}
+{% endif %}
 
 {% block body %}
-<h1>oops! page not found</h1>
+<h1 class="ui centered header">oops! page not found</h1>
 {% endblock %}

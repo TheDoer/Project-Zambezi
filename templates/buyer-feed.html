@@ -21,14 +21,14 @@
            <div class="ui divided items">
               <div class="ui item">
                 <div class="fluid image">
-                  {% if os.path.isfile("{{ UPLOAD_FOLDER }}" + stock.stock.image) %}
-                    <img src="{{ UPLOAD_FOLDER }}{{ stock.stock.image }}" alt="{{ stock.stock.image }}">
+                  {% if os.path.isfile(UPLOAD_FOLDER + stock.stock.image) %}
+                    <img src="/static/img/{{ stock.stock.image }}" alt="{{ stock.stock.image }}">
                   {% else %}
-                    <img src="{{ UPLOAD_FOLDER }}logo.png">
+                    <img src="/static/img/logo.png">
                   {% endif %}
                   <div class="ui red top left attached label"><strong>
                   <i class="dollar icon"></i>
-                  {{ stock.stock.price }}</strong></div>
+                  {{ '%0.2f' % stock.stock.price | float }}</strong></div>
                 </div>
 
                 <div class="content">

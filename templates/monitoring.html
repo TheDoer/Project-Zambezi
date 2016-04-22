@@ -1,0 +1,55 @@
+{% extends 'seller-layout.html' %}
+{% block body %}
+    <div class="ui padded stackable grid">
+      <div class="sixteen wide column" >
+        {% with messages = get_flashed_messages(True) %}
+            {% for category, message in messages %}
+              <div class="ui {{ category }} inverted attached centered segment" style="border: none;">
+                <div class="ui small centered header">{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endwith %}
+
+          <div id="chart_div" ></div>
+    </div>
+
+{% endblock %}
+
+{% block ajax %}
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
+      google.charts.load('current', {'packages':['corechart']});
+
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.charts.setOnLoadCallback(drawChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawChart() {
+        $.get('http://{{ HOST }}:{{ PORT }}/monitoring/stocks', function(data) {
+          response = JSON.parse(data);
+          console.log(response);
+
+          // Create the data table.
+          var data = google.visualization.arrayToDataTable(response);
+
+          var options = {
+            height: 400,
+            width: scroll,
+            legend: { position: 'top', maxLines: 3 },
+            bar: { groupWidth: '100%' },
+            isStacked: true,
+          };
+
+            // Instantiate and draw our chart, passing in some options.
+            var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+        });
+      }
+        var interval_id = window.setInterval(drawChart, 3000);
+    </script>
+
+{% endblock %}
