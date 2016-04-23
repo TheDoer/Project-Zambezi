@@ -24,7 +24,8 @@ from threading import *
 
 DEBUG = True
 PORT = ''
-HOST = 'roundshopper.com'
+HOST = '188.166.175.135'
+#HOST = 'androunditgoes.pythonanywhere'
 #HOST = 'localhost'
 UPLOAD_FOLDER = '/home/androunditgoes/mysite/static/img/'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
